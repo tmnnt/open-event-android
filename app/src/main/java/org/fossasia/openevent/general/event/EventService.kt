@@ -105,9 +105,19 @@ class EventService(
         return eventApi.getEventFromApi(id)
     }
 
-    fun getEventsUnderUser(eventIds: List<Long>): Single<List<Event>> {
+    fun getEventsUnderUser(eventIds: List<Long>): Flowable<List<Event>> {
         val query = buildQuery(eventIds)
-        return eventApi.eventsUnderUser(query)
+        val eventsFlowable = eventDao.getEventsUnderUser(eventIds)
+        return eventsFlowable.switchMap {
+            if (it.isNotEmpty())
+                eventsFlowable
+            else
+                eventApi.eventsUnderUser(query).toFlowable().map {
+                    eventDao.insertEvents(it)
+                }.flatMap {
+                    eventsFlowable
+                }
+        }
     }
 
     fun setFavorite(eventId: Long, favorite: Boolean): Completable {

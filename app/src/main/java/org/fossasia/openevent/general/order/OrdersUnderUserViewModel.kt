@@ -43,7 +43,7 @@ class OrdersUnderUserViewModel(
     fun isLoggedIn() = authHolder.isLoggedIn()
 
     fun ordersUnderUser(showExpired: Boolean) {
-        compositeDisposable.add(orderService.orderUser(getId())
+        compositeDisposable.add(orderService.fetchTicketsFromDb(getId())
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe {
@@ -94,10 +94,10 @@ class OrdersUnderUserViewModel(
                         eventAndIdentifier.add(Pair(event, it.identifier))
                 }
                 finalList = eventAndIdentifier
-                when (showExpired) {
-                    false -> finalList = finalList.filter {
+                finalList = when (showExpired) {
+                    false -> finalList.filter {
                         EventUtils.getTimeInMilliSeconds(it.first.endsAt, null) > System.currentTimeMillis() }
-                    true -> finalList = finalList.filter {
+                    true -> finalList.filter {
                         EventUtils.getTimeInMilliSeconds(it.first.endsAt, null) < System.currentTimeMillis() }
                 }
                 if (finalList.isEmpty()) mutableNoTickets.value = true

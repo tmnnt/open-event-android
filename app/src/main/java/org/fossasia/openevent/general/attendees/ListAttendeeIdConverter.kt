@@ -1,21 +1,24 @@
 package org.fossasia.openevent.general.attendees
 
 import androidx.room.TypeConverter
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.util.Collections
 
 class ListAttendeeIdConverter {
-
+    var gson = Gson()
     @TypeConverter
-    fun fromListAttendeeId(attendeeIdList: List<AttendeeId>): String {
-        val objectMapper = ObjectMapper()
-        return objectMapper.writeValueAsString(attendeeIdList)
+    fun stringToSomeObjectList(data: String?): List<AttendeeId> {
+        if (data == null) {
+            return Collections.emptyList()
+        }
+        val listType = object : TypeToken<List<AttendeeId>>() {}.type
+
+        return gson.fromJson<List<AttendeeId>>(data, listType)
     }
 
     @TypeConverter
-    fun toListAttendeeId(attendeeList: String): List<AttendeeId> {
-        val objectMapper = ObjectMapper()
-        val mapType = object : TypeReference<List<AttendeeId>>() {}
-        return objectMapper.readValue(attendeeList, mapType)
+    fun someObjectListToString(someObjects: List<AttendeeId>): String {
+        return gson.toJson(someObjects)
     }
 }

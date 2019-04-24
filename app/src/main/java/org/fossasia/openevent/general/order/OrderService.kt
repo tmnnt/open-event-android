@@ -1,5 +1,6 @@
 package org.fossasia.openevent.general.order
 
+import io.reactivex.Flowable
 import io.reactivex.Single
 import org.fossasia.openevent.general.attendees.Attendee
 import org.fossasia.openevent.general.attendees.AttendeeDao
@@ -32,11 +33,25 @@ class OrderService(
         return orderApi.confirmOrder(identifier, order)
     }
 
-    fun orderUser(userId: Long): Single<List<Order>> {
-        return orderApi.ordersUnderUser(userId)
-    }
-
     fun attendeesUnderOrder(orderIdentifier: String): Single<List<Attendee>> {
         return orderApi.attendeesUnderOrder(orderIdentifier)
+    }
+
+
+    fun fetchTicketsFromDb(userId: Long): Flowable<List<Order>> {
+        val ticketsFlowable = orderDao.getOrdersUnderUser()
+        return ticketsFlowable.switchMap {
+            if (it.isNotEmpty())
+                ticketsFlowable
+            else
+                orderApi.ordersUnderUser(userId)
+                    .toFlowable()
+                    .map {
+                        orderDao.insertOrders(it)
+                    }
+                    .flatMap {
+                        ticketsFlowable
+                    }
+        }
     }
 }

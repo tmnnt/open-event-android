@@ -38,4 +38,6 @@ interface EventDao {
 
     @Query("SELECT * from Event WHERE eventTopic = :topicId")
     fun getAllSimilarEvents(topicId: Long): Flowable<List<Event>>
-}
+
+    @Query("SELECT * from Event WHERE id in (:eventsIds)")
+    fun getEventsUnderUser(eventsIds: List<Long>): Flowable<List<Event>>}
