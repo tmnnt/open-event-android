@@ -3,6 +3,7 @@ package org.fossasia.openevent.general.event
 import android.content.res.ColorStateList
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.squareup.picasso.Callback
@@ -89,9 +90,10 @@ class EventViewHolder(override val containerView: View) : RecyclerView.ViewHolde
                     }
                 })
         }
+        ViewCompat.setTransitionName(containerView.eventImage, event.id.toString())
 
         containerView.setOnClickListener {
-            eventClickListener?.onClick(event.id)
+            eventClickListener?.onClick(event.id, containerView.eventImage)
                 ?: Timber.e("Event Click listener on ${this::class.java.canonicalName} is null")
         }
 

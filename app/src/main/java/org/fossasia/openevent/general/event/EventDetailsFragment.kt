@@ -22,6 +22,8 @@ import androidx.lifecycle.Observer
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.transition.TransitionInflater
+import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.content_event.similarEventsContainer
 import kotlinx.android.synthetic.main.content_event.view.eventDateDetailsFirst
@@ -109,26 +111,10 @@ class EventDetailsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        eventViewModel.event
-            .nonNull()
-            .observe(this, Observer {
-                loadEvent(it)
-                eventShare = it
-                title = eventShare.name
+        postponeEnterTransition()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            sharedElementEnterTransition = TransitionInflater.from(context).inflateTransition(android.R.transition.move)
 
-                // Update favorite icon and external event url menu option
-                activity?.invalidateOptionsMenu()
-
-                if (runOnce) {
-                    loadSocialLinksFragment()
-                    loadSimilarEventsFragment()
-                }
-                runOnce = false
-
-                Timber.d("Fetched events of id ${safeArgs.eventId}")
-                showEventErrorScreen(false)
-                setHasOptionsMenu(true)
-            })
         eventViewModel.loadEventFeedback(safeArgs.eventId)
         eventViewModel.fetchEventSpeakers(safeArgs.eventId)
         eventViewModel.loadEventSessions(safeArgs.eventId)
@@ -264,6 +250,52 @@ class EventDetailsFragment : Fragment() {
         })
 
         return rootView
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        eventViewModel.event
+            .nonNull()
+            .observe(this, Observer {
+                loadEvent(it)
+                eventShare = it
+                title = eventShare.name
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                    rootView.eventImage.transitionName = safeArgs.eventId.toString()
+                // Set Cover Image
+                it.originalImageUrl?.let {
+                    Picasso.get()
+                        .load(it)
+                        .placeholder(R.drawable.header)
+                        .into(rootView.eventImage, object : Callback {
+                            override fun onSuccess() {
+                                startPostponedEnterTransition()
+                            }
+
+                            override fun onError(e: Exception?) {
+                                startPostponedEnterTransition()
+                            }
+                        })
+                } ?: run {
+                    startPostponedEnterTransition()
+                }
+
+                if (eventShare.favorite) {
+//                    setFavoriteIcon(R.drawable.ic_baseline_favorite_white)
+                }
+
+                if (runOnce) {
+                    loadSocialLinksFragment()
+                    loadSimilarEventsFragment()
+                }
+                runOnce = false
+
+                Timber.d("Fetched events of id %d", safeArgs.eventId)
+                showEventErrorScreen(false)
+                setHasOptionsMenu(true)
+            })
     }
 
     private fun loadEvent(event: Event) {

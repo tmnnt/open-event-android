@@ -11,10 +11,12 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
@@ -76,7 +78,7 @@ class SearchResultsFragment : Fragment(), CompoundButton.OnCheckedChangeListener
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         rootView = inflater.inflate(R.layout.fragment_search_results, container, false)
-
+        postponeEnterTransition()
         setChips(safeArgs.date, safeArgs.type)
         setToolbar(activity, getString(R.string.search_results))
         setHasOptionsMenu(true)
@@ -85,6 +87,11 @@ class SearchResultsFragment : Fragment(), CompoundButton.OnCheckedChangeListener
 
         rootView.eventsRecycler.adapter = favoriteEventsRecyclerAdapter
         rootView.eventsRecycler.isNestedScrollingEnabled = false
+        rootView.eventsRecycler.viewTreeObserver
+            .addOnPreDrawListener {
+                startPostponedEnterTransition()
+                true
+            }
 
         searchViewModel.events
             .nonNull()
@@ -193,11 +200,15 @@ class SearchResultsFragment : Fragment(), CompoundButton.OnCheckedChangeListener
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val eventClickListener: EventClickListener = object : EventClickListener {
-            override fun onClick(eventID: Long) {
+            override fun onClick(eventID: Long, sharedImage: ImageView) {
+                val extras =
+                    FragmentNavigatorExtras(
+                        sharedImage to eventID.toString()
+                    )
                 EventDetailsFragmentArgs(eventID)
                     .toBundle()
                     .also { bundle ->
-                        Navigation.findNavController(view).navigate(R.id.eventDetailsFragment, bundle, getAnimFade())
+                        Navigation.findNavController(view).navigate(R.id.eventDetailsFragment, bundle, getAnimFade(),extras)
                     }
             }
         }
