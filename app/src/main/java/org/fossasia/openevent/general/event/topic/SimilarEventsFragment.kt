@@ -19,10 +19,9 @@ import org.fossasia.openevent.general.R
 import org.fossasia.openevent.general.di.Scopes
 import org.fossasia.openevent.general.event.Event
 import org.fossasia.openevent.general.common.EventClickListener
-import org.fossasia.openevent.general.event.EventsListAdapter
 import org.fossasia.openevent.general.common.FavoriteFabClickListener
 import org.fossasia.openevent.general.event.EventDetailsFragmentDirections
-import org.fossasia.openevent.general.event.EventLayoutType
+import org.fossasia.openevent.general.event.SimilarEventsListAdapter
 import org.fossasia.openevent.general.utils.extensions.nonNull
 import org.koin.android.ext.android.get
 import org.koin.androidx.scope.ext.android.bindScope
@@ -36,7 +35,7 @@ class SimilarEventsFragment : Fragment() {
     private val safeArgs: SimilarEventsFragmentArgs by navArgs()
     private lateinit var rootView: View
     private lateinit var linearLayoutManager: LinearLayoutManager
-    private lateinit var similarEventsListAdapter: EventsListAdapter
+    private lateinit var similarEventsListAdapter: SimilarEventsListAdapter
     private var similarIdEvents: MutableList<Event> = mutableListOf()
     private var similarLocationEvents: MutableList<Event> = mutableListOf()
     private var similarEvents: MutableList<Event> = mutableListOf()
@@ -92,7 +91,7 @@ class SimilarEventsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        similarEventsListAdapter = EventsListAdapter(EventLayoutType.SIMILAR_EVENTS, get())
+        similarEventsListAdapter = SimilarEventsListAdapter(get())
 
         val eventClickListener: EventClickListener = object : EventClickListener {
             override fun onClick(eventID: Long) {

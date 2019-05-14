@@ -44,10 +44,6 @@ import org.jetbrains.anko.design.longSnackbar
  * Enum class for different layout types in the adapter.
  * This class can expand as number of layout types grow.
  */
-enum class EventLayoutType {
-    EVENTS, SIMILAR_EVENTS
-}
-
 const val EVENT_DATE_FORMAT: String = "eventDateFormat"
 
 class EventsFragment : Fragment(), ScrollToTop {

@@ -98,6 +98,17 @@ class EventService(
         }
     }
 
+    fun getEventsByLocationPaged(locationName: String?, page: Int): Single<List<Event>> {
+        val query = "[{\"name\":\"location-name\",\"op\":\"ilike\",\"val\":\"%$locationName%\"}]"
+        return eventApi.searchEventsPaged("name", query, page).flatMap { apiList ->
+            val eventIds = apiList.map { it.id }.toList()
+            eventTopicsDao.insertEventTopics(getEventTopicList(apiList))
+            eventDao.getFavoriteEventWithinIds(eventIds).flatMap { favIds ->
+                updateFavorites(apiList, favIds)
+            }
+        }
+    }
+
     fun updateFavorites(apiEvents: List<Event>, favEventIds: List<Long>): Single<List<Event>> {
         apiEvents.map { if (favEventIds.contains(it.id)) it.favorite = true }
         eventDao.insertEvents(apiEvents)

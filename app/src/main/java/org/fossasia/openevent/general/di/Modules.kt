@@ -1,5 +1,6 @@
 package org.fossasia.openevent.general.di
 
+import androidx.paging.PagedList
 import androidx.room.Room
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -35,7 +36,6 @@ import org.fossasia.openevent.general.event.Event
 import org.fossasia.openevent.general.event.EventApi
 import org.fossasia.openevent.general.event.EventDetailsViewModel
 import org.fossasia.openevent.general.event.EventId
-import org.fossasia.openevent.general.event.EventLayoutType
 import org.fossasia.openevent.general.event.EventService
 import org.fossasia.openevent.general.common.EventsDiffCallback
 import org.fossasia.openevent.general.data.Resource
@@ -78,6 +78,7 @@ import org.fossasia.openevent.general.search.SearchTypeViewModel
 import org.fossasia.openevent.general.search.LocationServiceImpl
 import org.fossasia.openevent.general.auth.SmartAuthViewModel
 import org.fossasia.openevent.general.connectivity.MutableConnectionLiveData
+import org.fossasia.openevent.general.event.SimilarEventsListAdapter
 import org.fossasia.openevent.general.sessions.Session
 import org.fossasia.openevent.general.sessions.SessionApi
 import org.fossasia.openevent.general.sessions.SessionService
@@ -203,7 +204,7 @@ val apiModule = module {
 
 val viewModelModule = module {
     viewModel { LoginViewModel(get(), get(), get()) }
-    viewModel { EventsViewModel(get(), get(), get(), get()) }
+    viewModel { EventsViewModel(get(), get(), get(), get(), get()) }
     viewModel { ProfileViewModel(get(), get()) }
     viewModel { SignUpViewModel(get(), get(), get()) }
     viewModel { EventDetailsViewModel(get(), get(), get(), get(), get(), get()) }
@@ -237,6 +238,16 @@ val networkModule = module {
         val objectMapper = jacksonObjectMapper()
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         objectMapper
+    }
+
+    single {
+        PagedList
+            .Config
+            .Builder()
+            .setPageSize(10)
+            .setInitialLoadSizeHint(10)
+            .setEnablePlaceholders(false)
+            .build()
     }
 
     single { RequestAuthenticator(get()) as Interceptor }
@@ -355,11 +366,11 @@ val fragmentsModule = module {
     factory { EventsDiffCallback() }
 
     scope(Scopes.EVENTS_FRAGMENT.toString()) {
-        EventsListAdapter(EventLayoutType.EVENTS, get())
+        EventsListAdapter(get())
     }
 
     scope(Scopes.SIMILAR_EVENTS_FRAGMENT.toString()) {
-        EventsListAdapter(EventLayoutType.SIMILAR_EVENTS, get())
+        SimilarEventsListAdapter(get())
     }
 
     scope(Scopes.FAVORITE_FRAGMENT.toString()) {
